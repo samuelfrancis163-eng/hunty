@@ -1,30 +1,32 @@
-import { useRef, useState } from "react"
-import { Download, MessageCircle, Share2, Twitter } from "lucide-react"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
+import { Download, MessageCircle, Share2, Twitter } from "lucide-react";
+import Image from "next/image";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
+
+import { AchievementCertificate } from "@/components/AchievementCertificate";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { AchievementCertificate } from "@/components/AchievementCertificate"
+} from "@/components/ui/dropdown-menu";
 import {
   buildDeepLink,
+  buildHuntOgImageUrl,
   downloadElementAsImage,
-  shareOnTwitter,
   shareOnFarcaster,
   shareOnTelegram,
+  shareOnTwitter,
   shareOnWhatsApp,
-} from "@/lib/downloadAsImage"
-import { toast } from "sonner"
-import { logger } from "@/lib/logger"
+} from "@/lib/downloadAsImage";
+import { logger } from "@/lib/logger";
 
 interface GameCompleteShareProps {
-  huntId?: number
-  playerAddress?: string
-  reward: number
-  hasProgressData: boolean
+  huntId?: number;
+  playerAddress?: string;
+  reward: number;
+  hasProgressData: boolean;
 }
 
 export function GameCompleteShare({
@@ -33,35 +35,35 @@ export function GameCompleteShare({
   reward,
   hasProgressData,
 }: GameCompleteShareProps) {
-  const certificateRef = useRef<HTMLDivElement>(null)
-  const [isGenerating, setIsGenerating] = useState(false)
-
+  const certificateRef = useRef<HTMLDivElement>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   const handleShareAchievement = async (
     platform?: "twitter" | "farcaster" | "telegram" | "whatsapp"
   ) => {
-    if (!certificateRef.current) return
-    setIsGenerating(true)
+    if (!certificateRef.current) return;
+    setIsGenerating(true);
     try {
-      const filename = `hunty-achievement-${huntId}.png`
-      await downloadElementAsImage(certificateRef.current, { filename })
+      const filename = `hunty-achievement-${huntId}.png`;
+      await downloadElementAsImage(certificateRef.current, { filename });
 
       const shareText = `I just completed "${
         hasProgressData ? `Hunt #${huntId}` : "a Scavenger Hunt"
-      }" on @huntyapp! Check it out:`
-      const shareUrl = buildDeepLink(`/hunt/${huntId}`)
+      }" on @huntyapp! Check it out:`;
+      const shareUrl = buildDeepLink(`/hunt/${huntId}`);
+      const ogImageUrl = huntId ? buildHuntOgImageUrl(huntId) : undefined;
 
-      if (platform === "twitter") shareOnTwitter(shareText, shareUrl)
-      else if (platform === "farcaster") shareOnFarcaster(shareText, shareUrl)
-      else if (platform === "telegram") shareOnTelegram(shareText, shareUrl)
-      else if (platform === "whatsapp") shareOnWhatsApp(shareText, shareUrl)
-      else toast.success("Achievement image downloaded! You can now share it manually.")
+      if (platform === "twitter") shareOnTwitter(shareText, shareUrl, ogImageUrl);
+      else if (platform === "farcaster") shareOnFarcaster(shareText, shareUrl);
+      else if (platform === "telegram") shareOnTelegram(shareText, shareUrl);
+      else if (platform === "whatsapp") shareOnWhatsApp(shareText, shareUrl);
+      else toast.success("Achievement image downloaded! You can now share it manually.");
     } catch (error) {
-      logger.error("Failed to share achievement:", error)
-      toast.error("Failed to generate achievement image.")
+      logger.error("Failed to share achievement:", error);
+      toast.error("Failed to generate achievement image.");
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
-  }
+  };
 
   return (
     <>
@@ -132,9 +134,7 @@ export function GameCompleteShare({
         <AchievementCertificate
           ref={certificateRef}
           playerName={
-            playerAddress
-              ? `${playerAddress.slice(0, 6)}...${playerAddress.slice(-4)}`
-              : "Explorer"
+            playerAddress ? `${playerAddress.slice(0, 6)}...${playerAddress.slice(-4)}` : "Explorer"
           }
           huntTitle={hasProgressData ? `Hunt #${huntId}` : "Scavenger Hunt"}
           points={reward}
@@ -142,5 +142,5 @@ export function GameCompleteShare({
         />
       </div>
     </>
-  )
+  );
 }

@@ -1,42 +1,42 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useReducedMotion } from "framer-motion"
-import confetti from "canvas-confetti"
+import { useQuery } from "@tanstack/react-query";
+import confetti from "canvas-confetti";
+import { useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { RewardsPanel } from "@/components/RewardsPanel"
-import { NftMintProgress } from "@/components/NftMintProgress"
-import { LevelUpModal } from "./LevelUpModal"
-import { useQuery } from "@tanstack/react-query"
-import { checkRegistrationStatus } from "@/lib/contracts/player-registration"
-import { SOROBAN_READ_STALE_TIME_MS } from "@/lib/soroban/queryConfig"
-import { toast } from "sonner"
-import { ACHIEVEMENTS } from "@/lib/achievements/config"
-import { checkAndAwardAchievements } from "@/lib/achievements/service"
-import { logger } from "@/lib/logger"
-import type { HuntAttemptRecord, RewardReceipt } from "@/lib/types"
-import { queryCachePolicy, queryKeys } from "@/lib/queryKeys"
-import { awardXpFromHunt, getLevelTierForXp, getPlayerLevel } from "@/lib/level"
-import { getPlayerAttempts } from "@/lib/huntAttemptHistory"
+import { NftMintProgress } from "@/components/NftMintProgress";
+import { RewardsPanel } from "@/components/RewardsPanel";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ACHIEVEMENTS } from "@/lib/achievements/config";
+import { checkAndAwardAchievements } from "@/lib/achievements/service";
+import { checkRegistrationStatus } from "@/lib/contracts/player-registration";
+import { getPlayerAttempts } from "@/lib/huntAttemptHistory";
+import { awardXpFromHunt, getLevelTierForXp, getPlayerLevel } from "@/lib/level";
+import { logger } from "@/lib/logger";
+import { queryCachePolicy, queryKeys } from "@/lib/queryKeys";
+import { SOROBAN_READ_STALE_TIME_MS } from "@/lib/soroban/queryConfig";
+import type { RewardReceipt } from "@/lib/types";
 
-import { GameCompleteStats } from "./GameCompleteStats"
-import { GameCompleteAchievements } from "./GameCompleteAchievements"
-import { GameCompleteShare } from "./GameCompleteShare"
-import { GameCompleteReview } from "./GameCompleteReview"
-import { GameCompleteActions } from "./GameCompleteActions"
+import { GameCompleteAchievements } from "./GameCompleteAchievements";
+import { GameCompleteActions } from "./GameCompleteActions";
+import { GameCompleteReview } from "./GameCompleteReview";
+import { GameCompleteShare } from "./GameCompleteShare";
+import { GameCompleteStats } from "./GameCompleteStats";
+import { LevelUpModal } from "./LevelUpModal";
 
 interface GameCompleteModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onGoHome: () => void
-  onReplay: () => void
-  onViewLeaderboard: () => void
-  reward: number
-  rewardReceipt?: RewardReceipt | null
-  huntId?: number
-  playerAddress?: string
+  isOpen: boolean;
+  onClose: () => void;
+  onGoHome: () => void;
+  onReplay: () => void;
+  onViewLeaderboard: () => void;
+  reward: number;
+  rewardReceipt?: RewardReceipt | null;
+  huntId?: number;
+  playerAddress?: string;
 }
 
 export function GameCompleteModal({
@@ -50,32 +50,30 @@ export function GameCompleteModal({
   huntId,
   playerAddress,
 }: GameCompleteModalProps) {
-  const prefersReducedMotion = useReducedMotion()
-  const [newAchievements, setNewAchievements] = useState<string[]>([])
+  const prefersReducedMotion = useReducedMotion();
+  const [newAchievements, setNewAchievements] = useState<string[]>([]);
   const [levelUpData, setLevelUpData] = useState<{
-    oldLevel: number
-    newLevel: number
-    oldTier: ReturnType<typeof getLevelTierForXp>
-    newTier: ReturnType<typeof getLevelTierForXp>
-  } | null>(null)
-  const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false)
-  const latestAttempt = playerAddress && huntId
-    ? getPlayerAttempts(playerAddress).find((a) => a.huntId === huntId) ?? null
-    : null
+    oldLevel: number;
+    newLevel: number;
+    oldTier: ReturnType<typeof getLevelTierForXp>;
+    newTier: ReturnType<typeof getLevelTierForXp>;
+  } | null>(null);
+  const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false);
+  const latestAttempt =
+    playerAddress && huntId
+      ? (getPlayerAttempts(playerAddress).find((a) => a.huntId === huntId) ?? null)
+      : null;
 
   const { data: registrationStatus } = useQuery({
     queryKey: queryKeys.registration.status(huntId, playerAddress),
     queryFn: () =>
       huntId && playerAddress ? checkRegistrationStatus(huntId, playerAddress) : null,
     enabled: isOpen && !!huntId && !!playerAddress,
-    staleTime: Math.max(
-      SOROBAN_READ_STALE_TIME_MS,
-      queryCachePolicy.registrationStatus.staleTime
-    ),
+    staleTime: Math.max(SOROBAN_READ_STALE_TIME_MS, queryCachePolicy.registrationStatus.staleTime),
     gcTime: queryCachePolicy.registrationStatus.gcTime,
     refetchInterval: queryCachePolicy.registrationStatus.refetchInterval,
     refetchIntervalInBackground: true,
-  })
+  });
 
   const playerProgress = registrationStatus?.progressData
     ? {
@@ -84,13 +82,13 @@ export function GameCompleteModal({
         hunt_id: huntId,
         reward_amount: reward,
       }
-    : undefined
+    : undefined;
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
 
     if (!prefersReducedMotion) {
-      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } })
+      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
     }
 
     if (playerAddress) {
@@ -100,48 +98,49 @@ export function GameCompleteModal({
           totalHuntsWon: 1,
           totalNftsEarned: 0,
           fastestCompletionSeconds: undefined,
-        })
+        });
         if (earned.length > 0) {
-          setNewAchievements(earned)
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setNewAchievements(earned);
           earned.forEach((achievementId) => {
-            const achievement = ACHIEVEMENTS[achievementId as keyof typeof ACHIEVEMENTS]
+            const achievement = ACHIEVEMENTS[achievementId as keyof typeof ACHIEVEMENTS];
             if (achievement) {
               toast.success(`🎉 Achievement Unlocked: ${achievement.title}!`, {
                 description: achievement.description,
                 duration: 5000,
-              })
+              });
             }
-          })
+          });
         }
       } catch (error) {
-        logger.error("Failed to check achievements:", error)
+        logger.error("Failed to check achievements:", error);
       }
 
       try {
-        const oldLevelData = getPlayerLevel(playerAddress)
-        const oldTier = getLevelTierForXp(oldLevelData.totalXp)
-        const { xpEarned, levelUpOccurred } = awardXpFromHunt(playerAddress, reward)
+        const oldLevelData = getPlayerLevel(playerAddress);
+        const oldTier = getLevelTierForXp(oldLevelData.totalXp);
+        const { xpEarned, levelUpOccurred } = awardXpFromHunt(playerAddress, reward);
 
         if (levelUpOccurred) {
-          const newLevelData = getPlayerLevel(playerAddress)
-          const newTier = getLevelTierForXp(newLevelData.totalXp)
+          const newLevelData = getPlayerLevel(playerAddress);
+          const newTier = getLevelTierForXp(newLevelData.totalXp);
           setLevelUpData({
             oldLevel: oldTier.level,
             newLevel: newTier.level,
             oldTier,
             newTier,
-          })
-          setIsLevelUpModalOpen(true)
+          });
+          setIsLevelUpModalOpen(true);
         }
 
-        toast.success(`✨ +${xpEarned} XP earned!`, { duration: 3000 })
+        toast.success(`✨ +${xpEarned} XP earned!`, { duration: 3000 });
       } catch (error) {
-        logger.error("Failed to award XP:", error)
+        logger.error("Failed to award XP:", error);
       }
     }
-  }, [isOpen, playerAddress, huntId, prefersReducedMotion, reward])
+  }, [isOpen, playerAddress, huntId, prefersReducedMotion, reward]);
 
-  const hasProgressData = !!registrationStatus?.progressData?.hunt_id
+  const hasProgressData = !!registrationStatus?.progressData?.hunt_id;
 
   return (
     <>
@@ -183,11 +182,7 @@ export function GameCompleteModal({
 
             {/* NFT mint progress */}
             <div className="mt-6 border-t border-slate-100 pt-6">
-              <NftMintProgress
-                huntId={huntId ?? 0}
-                rank={1}
-                recipientAddress={playerAddress}
-              />
+              <NftMintProgress huntId={huntId ?? 0} rank={1} recipientAddress={playerAddress} />
             </div>
 
             <GameCompleteActions onGoHome={onGoHome} onReplay={onReplay} />
@@ -207,11 +202,7 @@ export function GameCompleteModal({
                 See Leaderboard
               </Button>
 
-              <GameCompleteReview
-                isOpen={isOpen}
-                huntId={huntId}
-                playerAddress={playerAddress}
-              />
+              <GameCompleteReview isOpen={isOpen} huntId={huntId} playerAddress={playerAddress} />
             </div>
           </div>
         </DialogContent>
@@ -228,5 +219,5 @@ export function GameCompleteModal({
         />
       )}
     </>
-  )
+  );
 }

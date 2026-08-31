@@ -1,13 +1,14 @@
-import { Clock3, Lightbulb, Medal } from "lucide-react"
-import Coin from "@/components/icons/Coin"
-import { useXlmUsdPrice } from "@/hooks/useXlmUsdPrice"
-import type { HuntAttemptRecord, RewardReceipt } from "@/lib/types"
-import { formatDuration } from "@/lib/huntAttemptHistory"
+import { Clock3, Lightbulb, Medal } from "lucide-react";
+
+import Coin from "@/components/icons/Coin";
+import { useXlmUsdPrice } from "@/hooks/useXlmUsdPrice";
+import { formatDuration } from "@/lib/huntAttemptHistory";
+import type { HuntAttemptRecord, RewardReceipt } from "@/lib/types";
 
 interface GameCompleteStatsProps {
-  latestAttempt: HuntAttemptRecord | null
-  reward: number
-  rewardReceipt?: RewardReceipt | null
+  latestAttempt: HuntAttemptRecord | null;
+  reward: number;
+  rewardReceipt?: RewardReceipt | null;
 }
 
 export function GameCompleteStats({
@@ -15,27 +16,24 @@ export function GameCompleteStats({
   reward,
   rewardReceipt,
 }: GameCompleteStatsProps) {
-  const { price: xlmUsdPrice } = useXlmUsdPrice()
+  const { price: xlmUsdPrice } = useXlmUsdPrice();
 
   const currencyFormatter = new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 2,
-  })
+  });
 
-  const usdEquivalent =
-    xlmUsdPrice != null ? currencyFormatter.format(reward * xlmUsdPrice) : null
+  const usdEquivalent = xlmUsdPrice != null ? currencyFormatter.format(reward * xlmUsdPrice) : null;
 
-  const completionTimeLabel = latestAttempt
-    ? formatDuration(latestAttempt.totalTimeSeconds)
-    : "—"
+  const completionTimeLabel = latestAttempt ? formatDuration(latestAttempt.totalTimeSeconds) : "—";
 
   const totalHintsUsed = latestAttempt
     ? latestAttempt.clues.reduce((sum, c) => sum + (c.hintsUsed ?? 0), 0)
-    : 0
+    : 0;
 
   // Rank is not tracked locally; show a dash until the leaderboard is opened
-  const rankLabel = "—"
+  const rankLabel = "—";
 
   return (
     <>
@@ -74,9 +72,7 @@ export function GameCompleteStats({
             <Coin />
             <span className="font-bold text-lg">{reward}</span>
           </div>
-          {usdEquivalent && (
-            <span className="text-sm text-slate-500">≈ {usdEquivalent}</span>
-          )}
+          {usdEquivalent && <span className="text-sm text-slate-500">≈ {usdEquivalent}</span>}
         </div>
       </div>
 
@@ -86,13 +82,11 @@ export function GameCompleteStats({
           <p className="text-sm font-semibold text-emerald-900">Reward receipt</p>
           <div className="mt-2 space-y-1 text-xs text-emerald-800">
             <p>
-              Amount:{" "}
-              <span className="font-semibold">{rewardReceipt.amount.toFixed(7)} XLM</span>
+              Amount: <span className="font-semibold">{rewardReceipt.amount.toFixed(7)} XLM</span>
             </p>
             {rewardReceipt.rank && (
               <p>
-                Winner rank:{" "}
-                <span className="font-semibold">#{rewardReceipt.rank}</span>
+                Winner rank: <span className="font-semibold">#{rewardReceipt.rank}</span>
               </p>
             )}
             <p className="break-all">
@@ -102,5 +96,5 @@ export function GameCompleteStats({
         </div>
       )}
     </>
-  )
+  );
 }
