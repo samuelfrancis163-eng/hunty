@@ -2,6 +2,7 @@
   "extends": "@hunty/config/tsconfig/base.json",
   "compilerOptions": {
     "outDir": "dist",
+    "types": ["@testing-library/jest-dom"],
     "paths": {
       "@hunty/types": ["../types/src/index.ts"]
     }
