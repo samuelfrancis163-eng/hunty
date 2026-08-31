@@ -59,7 +59,9 @@ export function GameCompleteModal({
     newTier: ReturnType<typeof getLevelTierForXp>
   } | null>(null)
   const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false)
-  const [latestAttempt, setLatestAttempt] = useState<HuntAttemptRecord | null>(null)
+  const latestAttempt = playerAddress && huntId
+    ? getPlayerAttempts(playerAddress).find((a) => a.huntId === huntId) ?? null
+    : null
 
   const { data: registrationStatus } = useQuery({
     queryKey: queryKeys.registration.status(huntId, playerAddress),
@@ -89,13 +91,6 @@ export function GameCompleteModal({
 
     if (!prefersReducedMotion) {
       confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } })
-    }
-
-    // Load the most recent attempt for this hunt so we can derive stats
-    if (playerAddress && huntId) {
-      const attempts = getPlayerAttempts(playerAddress)
-      const match = attempts.find((a) => a.huntId === huntId) ?? null
-      setLatestAttempt(match)
     }
 
     if (playerAddress) {
